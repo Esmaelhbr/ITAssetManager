@@ -13,5 +13,8 @@ public interface AssetService {
 	  List<Asset> getAllAssets();
 	  Asset updateAsset(Long id, Asset asset);
 	  void deleteAsset(Long id);
+	  
+	  Asset assignAssetToUser(Long assetId, Long userId);
+	  Asset unassignAsset(Long assetId);
 
 }

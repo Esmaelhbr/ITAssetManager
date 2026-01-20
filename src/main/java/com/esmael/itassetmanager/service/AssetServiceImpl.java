@@ -7,19 +7,26 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 import com.esmael.itassetmanager.entities.Asset;
+import com.esmael.itassetmanager.entities.User;
+import com.esmael.itassetmanager.enums.AssetStatus;
 import com.esmael.itassetmanager.repositories.AssetRepository;
+import com.esmael.itassetmanager.repositories.UserRepository;
 
 
 @Service
 public class AssetServiceImpl implements AssetService {
 
 	private final AssetRepository assetRepository;
+	private final UserRepository userRepository;
 	
 	
 	
-	public AssetServiceImpl(AssetRepository assetRepository) {
+	
+
+	public AssetServiceImpl(AssetRepository assetRepository, UserRepository userRepository) {
 		
 		this.assetRepository = assetRepository;
+		this.userRepository = userRepository;
 	}
 
 	@Override
@@ -68,6 +75,37 @@ public class AssetServiceImpl implements AssetService {
 	public void deleteAsset(Long id) {
 		assetRepository.deleteById(id);
 
+	}
+
+	@Override
+	public Asset assignAssetToUser(Long assetId, Long userId) {
+		Asset asset = assetRepository.findById(assetId)
+			    .orElseThrow(() -> new RuntimeException("Asset not found"));
+		User user = userRepository.findById(userId)
+			    .orElseThrow(() -> new RuntimeException("User not found"));
+		
+		if (asset.getStatus() != AssetStatus.AVAILABLE) {
+		    throw new RuntimeException("Asset is not available");
+		}
+		
+		asset.setAssignedTo(user);
+		asset.setStatus(AssetStatus.ASSIGNED);
+		return assetRepository.save(asset);
+	}
+
+	@Override
+	public Asset unassignAsset(Long assetId) {
+		
+		Asset asset = assetRepository.findById(assetId)
+			    .orElseThrow(() -> new RuntimeException("Asset not found"));
+		
+		if(asset.getAssignedTo() == null) {
+			throw new RuntimeException("Asset is not assigned");
+		}
+		
+		asset.setAssignedTo(null);
+		asset.setStatus(AssetStatus.AVAILABLE);
+		return assetRepository.save(asset);
 	}
 
 }
